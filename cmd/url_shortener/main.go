@@ -16,8 +16,7 @@ const (
 func main() {
 	cfg := config.MustLoad()
 	log := setupLogger(cfg.Env)
-	log.Debug("logger initialized")
-	_, err := pg.New(cfg.Database.URI)
+	_, err := pg.New(cfg.Database.URI, log)
 	if err != nil {
 		panic("failed to connect to database" + err.Error())
 	}
@@ -36,5 +35,6 @@ func setupLogger(env string) *slog.Logger {
 		log = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
 
 	}
+	log.Info("logger initialized")
 	return log
 }
