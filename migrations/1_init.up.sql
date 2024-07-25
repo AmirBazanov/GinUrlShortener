@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS url(
-                                  id INTEGER PRIMARY KEY,
+                                  id SERIAL,
                                   alias TEXT NOT NULL UNIQUE,
                                 d_token TEXT NOT NULL,
                                   url TEXT NOT NULL);
