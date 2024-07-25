@@ -30,6 +30,7 @@ type Database struct {
 	User     string `yaml:"user" env:"USER" envDefault:"root"`
 	Password string `yaml:"password" env:"PASSWORD" envDefault:"root"`
 	DB       string `yaml:"db" env:"DB" envDefault:"test"`
+	URI      string `yaml:"uri" env:"URI"`
 }
 
 func MustLoad() Config {

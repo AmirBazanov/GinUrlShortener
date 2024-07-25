@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"os"
 	"url_shortener/internal/config"
+	"url_shortener/internal/database/pg"
 )
 
 const (
@@ -16,6 +17,10 @@ func main() {
 	cfg := config.MustLoad()
 	log := setupLogger(cfg.Env)
 	log.Debug("logger initialized")
+	_, err := pg.New(cfg.Database.URI)
+	if err != nil {
+		panic("failed to connect to database" + err.Error())
+	}
 
 }
 
