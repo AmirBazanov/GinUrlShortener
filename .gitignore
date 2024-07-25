@@ -1,2 +1,3 @@
-/.idea/
-config
+.idea/
+config/
+cmd/migrator
