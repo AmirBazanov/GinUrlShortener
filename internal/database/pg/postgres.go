@@ -23,14 +23,13 @@ func New(storagePath string, log *slog.Logger) (*Postgres, error) {
 	return &Postgres{db: db}, nil
 }
 
-func (p *Postgres) SaveUrl(urlToSave string, alias string, token string) (int64, error) {
+func (p *Postgres) SaveUrl(urlToSave string, alias string, token string) (id int64, err error) {
 	const op = "pg.Postgres.SaveUrl()"
 	stmt, err := p.db.Prepare("INSERT INTO url(alias, url, d_token) VALUES($1, $2, $3)")
 	if err != nil {
 		return 0, errors.New(op + err.Error())
 	}
 	defer Close(stmt)
-	var id int64
 	err = stmt.QueryRow(alias, urlToSave, token).Scan(id)
 	if err != nil {
 		if errors.As(err, &sql.ErrNoRows) && errors.Is(err, sql.ErrNoRows) {
@@ -41,8 +40,8 @@ func (p *Postgres) SaveUrl(urlToSave string, alias string, token string) (int64,
 	return id, nil
 }
 
-func (p *Postgres) DeleteAlias(alias string) error {
-	const op = "pg.Postgres.DeleteAlias()"
+func (p *Postgres) DeleteByAlias(alias string) error {
+	const op = "pg.Postgres.DeleteByAlias()"
 	stmt, err := p.db.Prepare("DELETE FROM url WHERE alias = $1")
 	if err != nil {
 		return errors.New(op + err.Error())
@@ -55,6 +54,38 @@ func (p *Postgres) DeleteAlias(alias string) error {
 		}
 	}
 	return nil
+}
+
+func (p *Postgres) DeleteByToken(token string) error {
+	const op = "pg.Postgres.DeleteByToken()"
+	stmt, err := p.db.Prepare("DELETE FROM url WHERE d_token = $1")
+	if err != nil {
+		return errors.New(op + err.Error())
+	}
+	defer Close(stmt)
+	_, err = stmt.Exec(token)
+	if err != nil {
+		if errors.As(err, &sql.ErrNoRows) && errors.Is(err, sql.ErrNoRows) {
+			return database.TokenNotFound
+		}
+	}
+	return nil
+}
+
+func (p *Postgres) FindByAlias(alias string) (url string, err error) {
+	const op = "pg.Postgres.FindByAlias()"
+	stmt, err := p.db.Prepare("SELECT url FROM url WHERE alias = $1")
+	if err != nil {
+		return "", errors.New(op + err.Error())
+	}
+	defer Close(stmt)
+	err = stmt.QueryRow(alias).Scan(&url)
+	if err != nil {
+		if errors.As(err, &sql.ErrNoRows) && errors.Is(err, sql.ErrNoRows) {
+			return "", database.AliasNotFound
+		}
+	}
+	return url, nil
 }
 
 func Close(stmt *sql.Stmt) {
